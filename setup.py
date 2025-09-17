@@ -35,6 +35,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/nielrya4/mp_lib",
     packages=find_packages(),
+    py_modules=['mp_cli'],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",

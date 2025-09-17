@@ -160,6 +160,26 @@ function Install-MpLib {
         Write-Status "Installing Python dependencies..."
         Set-Location $InstallPath
         
+        # Ensure setup.py includes py_modules for CLI
+        Write-Status "Configuring setup.py for CLI support..."
+        if ((Test-Path "setup.py") -and -not (Select-String -Path "setup.py" -Pattern "py_modules.*mp_cli" -Quiet)) {
+            try {
+                # Add py_modules line after packages=find_packages() if it doesn't exist
+                $setupContent = Get-Content "setup.py"
+                $newContent = @()
+                foreach ($line in $setupContent) {
+                    $newContent += $line
+                    if ($line -match "packages=find_packages\(\),") {
+                        $newContent += "    py_modules=['mp_cli'],"
+                    }
+                }
+                $newContent | Set-Content "setup.py"
+            }
+            catch {
+                Write-Warning "Could not modify setup.py automatically"
+            }
+        }
+        
         # Check if we're in a virtual environment
         $inVirtualEnv = $false
         if ($env:VIRTUAL_ENV -or $env:CONDA_DEFAULT_ENV) {

@@ -113,6 +113,15 @@ install_mp_lib() {
     
     cd "$INSTALL_DIR"
     
+    # Ensure setup.py includes py_modules for CLI
+    print_status "Configuring setup.py for CLI support..."
+    if [ -f "setup.py" ] && ! grep -q "py_modules.*mp_cli" setup.py; then
+        # Add py_modules line after packages=find_packages() if it doesn't exist
+        sed -i '/packages=find_packages()/a\    py_modules=['\''mp_cli'\''],' setup.py || {
+            print_warning "Could not modify setup.py automatically"
+        }
+    fi
+    
     # Install Python package
     print_status "Installing Python dependencies..."
     

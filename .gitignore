@@ -4,3 +4,4 @@
 cli_test
 test_*
 test.*
+/mp_lib.egg-info/
