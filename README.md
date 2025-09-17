@@ -33,12 +33,12 @@ A comprehensive Python library and command-line tool for microplastics data anal
 
 **Linux/macOS:**
 ```bash
-curl -sSL https://raw.githubusercontent.com/nielrya4/mp_lib/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/nielrya4/mp_lib/master/install.sh | bash
 ```
 
 **Windows PowerShell:**
 ```powershell
-iwr -useb https://raw.githubusercontent.com/nielrya4/mp_lib/main/install.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/nielrya4/mp_lib/master/install.ps1 | iex
 ```
 
 ### Manual Installation
@@ -214,7 +214,7 @@ If you use this software in your research, please cite:
 
 - **Issues**: [GitHub Issues](https://github.com/nielrya4/mp_lib/issues)
 - **Documentation**: [Wiki](https://github.com/nielrya4/mp_lib/wiki)
-- **Examples**: [Examples Directory](https://github.com/nielrya4/mp_lib/tree/main/examples)
+- **Examples**: [Examples Directory](https://github.com/nielrya4/mp_lib/tree/master/examples)
 
 ## Roadmap
 

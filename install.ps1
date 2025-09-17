@@ -160,15 +160,95 @@ function Install-MpLib {
         Write-Status "Installing Python dependencies..."
         Set-Location $InstallPath
         
+        # Check if we're in a virtual environment
+        $inVirtualEnv = $false
+        if ($env:VIRTUAL_ENV -or $env:CONDA_DEFAULT_ENV) {
+            $inVirtualEnv = $true
+        } else {
+            # Check using Python
+            try {
+                $venvCheck = python -c "import sys; print(hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix))" 2>$null
+                if ($venvCheck -eq "True") {
+                    $inVirtualEnv = $true
+                }
+            }
+            catch {
+                # If python command fails, try python3
+                try {
+                    $venvCheck = python3 -c "import sys; print(hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix))" 2>$null
+                    if ($venvCheck -eq "True") {
+                        $inVirtualEnv = $true
+                    }
+                }
+                catch {
+                    # Default to false if we can't detect
+                    $inVirtualEnv = $false
+                }
+            }
+        }
+        
+        if ($inVirtualEnv) {
+            Write-Status "Virtual environment detected, installing without --user flag"
+        }
+        
         # Try different Python commands
         $installSuccess = $false
         $pythonCommands = @("python", "python3", "py")
         
         foreach ($pythonCmd in $pythonCommands) {
             try {
-                & $pythonCmd -m pip install --user -e . 2>$null
-                $installSuccess = $true
-                break
+                if ($inVirtualEnv) {
+                    & $pythonCmd -m pip install -e . 2>$null
+                    $installSuccess = $true
+                    break
+                } else {
+                    # Try --user installation first
+                    try {
+                        & $pythonCmd -m pip install --user -e . 2>$null
+                        Write-Status "Installed with --user flag"
+                        $installSuccess = $true
+                        break
+                    }
+                    catch {
+                        Write-Warning "Standard installation failed. Trying alternative methods..."
+                        
+                        # Check if pipx is available
+                        if (Get-Command pipx -ErrorAction SilentlyContinue) {
+                            Write-Status "Using pipx for installation..."
+                            try {
+                                pipx install -e . 2>$null
+                                $installSuccess = $true
+                                break
+                            }
+                            catch {
+                                Write-Warning "pipx installation failed"
+                            }
+                        }
+                        
+                        # Last resort: ask user about --break-system-packages
+                        Write-Warning "This system has externally-managed Python environment."
+                        Write-Warning "Options:"
+                        Write-Warning "1. Install using --break-system-packages (not recommended)"
+                        Write-Warning "2. Use pipx (install with: python -m pip install --user pipx)"
+                        Write-Warning "3. Create a virtual environment"
+                        Write-Host ""
+                        
+                        $response = Read-Host "Do you want to proceed with --break-system-packages? [y/N]"
+                        if ($response -match "^[Yy]$") {
+                            try {
+                                & $pythonCmd -m pip install --user --break-system-packages -e . 2>$null
+                                $installSuccess = $true
+                                break
+                            }
+                            catch {
+                                Write-Error "Failed to install Python package even with --break-system-packages"
+                            }
+                        } else {
+                            Write-Error "Installation cancelled. Please use a virtual environment or install pipx."
+                            exit 1
+                        }
+                    }
+                }
             }
             catch {
                 continue
